@@ -39,10 +39,9 @@ property :manage_symlink_source, [true, false]
 action :install do
   r = new_resource
   basename = r.archive_name || ::File.basename(r.name)
-  extname  = ::File.extname(r.archive_name) || ::File.extname(r.name)
+  extname  = ::File.extname(basename)
   r.compress_char = '' if extname.casecmp('.xz').zero?
-
-  dirname = basename.sub(/\.tar..*/, '')
+  dirname = basename.chomp(".tar#{extname}")
   src_dir = r.source_directory
 
   directory src_dir do
