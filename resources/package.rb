@@ -25,6 +25,8 @@ property :prefix,                String
 property :source_directory,      String, default: '/usr/local/src'
 property :creates,               String
 property :tar_binary,            String, default: 'tar'
+property :tar_flags,             [String, Array], default: []
+property :compress_char,         String, default: 'z'
 property :configure_flags,       Array, default: []
 property :archive_name,          String
 property :headers,               Hash
@@ -37,7 +39,10 @@ property :manage_symlink_source, [true, false]
 action :install do
   r = new_resource
   basename = r.archive_name || ::File.basename(r.name)
-  dirname = basename.chomp('.tar.gz') # Assuming .tar.gz
+  extname  = ::File.extname(r.archive_name) || ::File.extname(r.name)
+  r.compress_char = '' if extname.casecmp('.xz').zero?
+
+  dirname = basename.sub(/\.tar..*/, '')
   src_dir = r.source_directory
 
   directory src_dir do
@@ -58,7 +63,12 @@ action :install do
   end
 
   execute "extract #{basename}" do
-    command "#{r.tar_binary} xfz #{basename}"
+    flags = if r.tar_flags.is_a?(String)
+              r.tar_flags
+            else
+              r.tar_flags.join(' ')
+            end
+    command "#{r.tar_binary} xf#{r.compress_char} #{basename} #{flags}"
     cwd src_dir
     creates "#{src_dir}/#{dirname}"
   end
