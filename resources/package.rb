@@ -52,6 +52,7 @@ action :install do
     source r.name
     path "#{src_dir}/#{basename}"
     backup false
+    show_progress true
     headers r.headers unless r.headers.nil?
     use_etag r.use_etag
     use_last_modified r.use_last_modified
